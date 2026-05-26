@@ -1,0 +1,135 @@
+agent:
+  name: "debian-exec"
+  version: "1.0.0"
+  mode: "execution"
+
+debian:
+  distro_family: "debian"
+  # Debian may run `git` (or any CLI) via debian.script.run / terraform when installed; that is generic shell tooling.
+  # Product flows that belong to GitLab (gitlab.* skills, GitLab HTTP API, MR lifecycle, PAT-based checkout as a first-class path) stay on the GitLab execution agent (ADR006), not as Debian-owned integration.
+  # Env forwarded into debian.script.run is restricted to these prefixes (no GITLAB_* / AWS_* on the Debian agent).
+  # Optional step payload `run_as` (POSIX login name): when the agent is root, the temp script is chowned
+  # and bash runs with that uid/gid so HOME/tooling stay under that user (e.g. constellio / ubuntu on the guest).
+  script_allowed_env_prefixes:
+    - "FLUID_"
+  default_timeout_seconds: 600
+
+controlplane:
+  websocket_url: "${FLUID_CONTROLPLANE_WEBSOCKET_URL}"
+  organization_uuid: "${FLUID_CONTROLPLANE_ORGANIZATION_UUID}"
+  token: "${FLUID_CONTROLPLANE_TOKEN}"
+
+logs:
+  enabled: true
+  verbosity: "normal"
+
+skills:
+  allowed:
+    # Used by dependabot_infra_mr_validation (core.wait_for until connected=true).
+    - debian.agent.health
+    - debian.pkg.update_index
+    - debian.pkg.install
+    - debian.pkg.remove
+    - debian.pkg.upgrade
+    - debian.script.run
+    - debian.workspace.prepare
+    - debian.terraform.init
+    - debian.terraform.plan
+    - debian.fluid_execution_agent.bootstrap
+  definitions:
+    debian.agent.health:
+      result:
+        type: object
+        properties:
+          connected: { type: boolean }
+    debian.pkg.update_index:
+      result:
+        type: object
+        properties:
+          changed: { type: boolean }
+          exit_code: { type: integer }
+    debian.pkg.install:
+      result:
+        type: object
+        properties:
+          changed: { type: boolean }
+          installed: { type: array }
+          exit_code: { type: integer }
+    debian.pkg.remove:
+      result:
+        type: object
+        properties:
+          changed: { type: boolean }
+          removed: { type: array }
+          exit_code: { type: integer }
+    debian.pkg.upgrade:
+      result:
+        type: object
+        properties:
+          changed: { type: boolean }
+          upgraded_count: { type: integer }
+          exit_code: { type: integer }
+    debian.script.run:
+      result:
+        type: object
+        properties:
+          changed: { type: boolean }
+          exit_code: { type: integer }
+          duration_ms: { type: integer }
+    debian.workspace.prepare:
+      with:
+        type: object
+        properties:
+          workspace_owner:
+            type: string
+            description: Optional POSIX login. When set, /tmp/fluid/{run_id}, workspace, workspace/repo, and run_context fluid_context.json are mode 0750 and chowned to that user. secrets is a run-level sibling mode 0700 root, artifacts is a run-level sibling mode 0750 root. Combine workspace_owner with gitlab.repo.checkout_mr run_as and debian.terraform run_as for the same login.
+      result:
+        type: object
+        properties:
+          workspace_path: { type: string }
+          repo_path: { type: string }
+          secrets_dir: { type: string }
+          artifacts_dir: { type: string }
+    debian.terraform.init:
+      with:
+        type: object
+        properties:
+          run_as:
+            type: string
+            description: Optional POSIX login. When the agent is root, terraform runs with that uid/gid (HOME/USER/LOGNAME from passwd). Use the same login as workspace_owner / gitlab.repo.checkout_mr run_as so init writes .terraform as that user.
+      result:
+        type: object
+        properties:
+          exit_code: { type: integer }
+          working_dir: { type: string }
+    debian.terraform.plan:
+      with:
+        type: object
+        properties:
+          run_as:
+            type: string
+            description: Optional POSIX login. When the agent is root, terraform runs with that uid/gid. Should match debian.terraform.init run_as for the same working directory.
+      result:
+        type: object
+        properties:
+          exit_code: { type: integer }
+          detailed_exitcode: { type: boolean }
+          working_dir: { type: string }
+    debian.fluid_execution_agent.bootstrap:
+      with:
+        type: object
+        properties:
+          agent_config_yaml:
+            type: string
+            description: Full YAML body for the child execution agent config file (written to agent_config_path, overwrites any existing file). Single source for service_credentials, enrollment, skills, controlplane, etc. Interpolate use case vars (e.g. ${vars.*}, ${inputs.*}, ${locals.*}) in the definition so the worker file contains resolved values.
+          enrollment_name:
+            type: string
+            description: Deprecated for child config; put enrollment.name inside agent_config_yaml instead. Still accepted by the control plane for older definitions but the Debian agent no longer maps it into the child agent.yml.
+      result:
+        type: object
+        properties:
+          started: { type: boolean }
+          pid: { type: integer }
+          install_path: { type: string }
+          log_path: { type: string }
+          agent_slug: { type: string }
