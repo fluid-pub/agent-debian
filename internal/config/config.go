@@ -11,7 +11,7 @@ import (
 
 type Config struct {
 	Agent        AgentConfig        `yaml:"agent"`
-	Debian       DebianConfig        `yaml:"debian"`
+	Debian       DebianConfig       `yaml:"debian"`
 	Controlplane ControlplaneConfig `yaml:"controlplane"`
 	Logs         LogsConfig         `yaml:"logs"`
 	Skills       SkillsConfig       `yaml:"skills"`

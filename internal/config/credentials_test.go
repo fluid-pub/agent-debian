@@ -20,7 +20,7 @@ controlplane:
 	}
 
 	cfg := &Config{
-		Agent: AgentConfig{Name: "debian-exec", Version: "1", Mode: "execution"},
+		Agent:  AgentConfig{Name: "debian-exec", Version: "1", Mode: "execution"},
 		Debian: DebianConfig{DistroFamily: "debian", ScriptAllowedEnvPrefixes: []string{"FLUID_"}, DefaultTimeoutSeconds: 600},
 		Controlplane: ControlplaneConfig{
 			WebSocketURL:     "",

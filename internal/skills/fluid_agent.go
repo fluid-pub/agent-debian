@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"gopkg.in/yaml.v3"
-
 )
 
 // BootstrapFluidExecutionAgent downloads a Fluid execution agent binary from the control plane
@@ -203,9 +202,9 @@ var parentEnvAllowlist = map[string]struct{}{
 	"TZ":         {},
 	"HTTP_PROXY": {}, "HTTPS_PROXY": {}, "NO_PROXY": {},
 	"http_proxy": {}, "https_proxy": {}, "no_proxy": {},
-	"SSL_CERT_FILE":       {},
-	"SSL_CERT_DIR":        {},
-	"REQUESTS_CA_BUNDLE":  {},
+	"SSL_CERT_FILE":      {},
+	"SSL_CERT_DIR":       {},
+	"REQUESTS_CA_BUNDLE": {},
 }
 
 func parentEnvKeyAllowed(key string) bool {
