@@ -1,0 +1,57 @@
+# Dependabot version updates for fluid-pub/agent-debian.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    target-branch: develop
+    assignees:
+      - "fuse"
+    reviewers:
+      - "fuse"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+      - go
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    target-branch: develop
+    assignees:
+      - "fuse"
+    reviewers:
+      - "fuse"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+      - docker
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    target-branch: develop
+    assignees:
+      - "fuse"
+    reviewers:
+      - "fuse"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+      - github-actions
+    groups:
+      github-actions:
+        patterns:
+          - "*"
