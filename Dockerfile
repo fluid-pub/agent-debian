@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Fluid Debian execution agent — see code/actions/templates/Dockerfile.go-workload
 
-FROM golang:1.26-bookworm AS build
+FROM golang:1.27-bookworm AS build
 
 ARG BINARY_NAME=fluid-agent-debian
 ARG VERSION=0.0.0
